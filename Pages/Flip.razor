@@ -1,0 +1,118 @@
+﻿@page "/flip"
+
+@inject HttpClient HttpClient
+@using marveltake2.Models
+
+<style>
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.flip-card {
+  background-color: transparent;
+  width: 300px;
+  height: 300px;
+  perspective: 1000px;
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  text-align: center;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+}
+
+.flip-card:hover .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front, .flip-card-back {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.flip-card-front {
+  background-color: #bbb;
+  color: black;
+}
+
+.flip-card-back {
+  background-color: #2980b9;
+  color: white;
+  transform: rotateY(180deg);
+}
+</style>
+
+<PageTitle>Index</PageTitle>
+
+
+
+<h1 class="text-center text-primary">Blazor Marvel magic Lookup Engine</h1>
+
+<div class="text-center">
+    <div class="p-2">
+        <input class="form-control form-control-lg w-50 mx-auto mt-4" placeholder="Enter Marvel Character" @bind-value="whotofind"/>
+    </div>
+    <div class="p-2">
+        <button class="btn btn-primary btn-lg" @onclick="FindMarvel" >Find your Marvel hero</button>
+    </div>
+</div>
+
+@if (_marvelResult != null)
+{
+    <div class="container">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3">
+
+            @foreach(var result in _marvelResult.Data.Results)
+            {
+            <div class="col mb-4">
+                <div class="flip-card">
+                    <div class="flip-card-inner">
+                    <div class="flip-card-front">
+
+                    <img class="thumbnail" src="@($"{result.Thumbnail.Path}.{result.Thumbnail.Extension}")" style="width:300px;height:300px;"> 
+                    </div>
+                    <div class="flip-card-back">
+                        <h5>@result.Name</h5>
+                        <p>
+                            @result.Description
+                        </p>
+                    </div>
+                    </div>
+                </div>
+            </div>
+            }
+        </div>
+    </div>
+}
+
+
+
+@code
+{
+    private MarvelResult _marvelResult;
+
+    private string whotofind;
+
+    private string MarvelapiKey = "<enter your Marvel API key here>";
+
+    private async Task FindMarvel()
+
+    {
+        var url = $"characters?nameStartsWith={whotofind}&apikey={MarvelapiKey}";
+
+        _marvelResult = await HttpClient
+            .GetFromJsonAsync<MarvelResult>(url,new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+            });
+ 
+
+    }
+}
